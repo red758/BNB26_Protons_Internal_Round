@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% block title %}Result - ModelLedger{% endblock %}
+
+{% block content %}
+<section class="page narrow">
+
+{% if mode == 'register' %}
+  <p class="status ok"><i></i>File registered</p>
+  <h1 class="h-sm">Identifier embedded and record saved.</h1>
+
+  <div class="idbox">
+    <div class="k">Watermark ID</div>
+    <code class="bigid" id="wmid">{{ r.watermark_id }}</code>
+    <button class="btn ghost small" type="button" data-copy="#wmid">Copy ID</button>
+  </div>
+
+  <dl class="facts">
+    <div><dt>File</dt><dd>{{ r.filename }}</dd></div>
+    <div><dt>Media type</dt><dd>{{ r.media_kind|capitalize }}</dd></div>
+    <div><dt>Model or source</dt><dd>{{ r.model_name }}</dd></div>
+    <div><dt>Generator</dt><dd>{{ r.generator_name }}</dd></div>
+    <div><dt>Creator</dt><dd>{{ r.creator }}</dd></div>
+    <div><dt>Registered</dt><dd>{{ r.registered_at }}</dd></div>
+    <div><dt>Original SHA-256</dt><dd><code class="hash wrap">{{ r.sha256 }}</code></dd></div>
+  </dl>
+
+  <div class="actions">
+    <a class="btn primary" href="{{ r.download_url }}" download>Download watermarked file</a>
+    <a class="btn ghost" href="/register">Register another file</a>
+  </div>
+
+{% else %}
+  {% if r.state == 'registered' %}
+    <p class="status ok"><i></i>Watermark detected, record found</p>
+    <h1 class="h-sm">This file connects to a registered source.</h1>
+  {% elif r.state == 'orphan' %}
+    <p class="status warn"><i></i>Watermark detected, no record found</p>
+    <h1 class="h-sm">The identifier is here, but its record is not.</h1>
+    <p class="lede">The watermark exists, but ModelLedger cannot find its associated provenance record.</p>
+  {% else %}
+    <p class="status none"><i></i>No registered watermark detected</p>
+    <h1 class="h-sm">ModelLedger can't place this file.</h1>
+    <p class="lede">
+      This does not mean the file is human-made. It means ModelLedger could not recover
+      a registered watermark from it.
+    </p>
+  {% endif %}
+
+  {% if r.state in ('registered', 'orphan') %}
+  <div class="idbox">
+    <div class="k">Watermark ID</div>
+    <code class="bigid" id="wmid">{{ r.watermark_id }}</code>
+    <button class="btn ghost small" type="button" data-copy="#wmid">Copy ID</button>
+  </div>
+  {% endif %}
+
+  <dl class="facts">
+    {% if r.state == 'registered' and r.record %}
+    <div><dt>Media type</dt><dd>{{ r.record.media_kind|capitalize }}</dd></div>
+    <div><dt>Model or source</dt><dd>{{ r.record.model_name }}</dd></div>
+    <div><dt>Generator</dt><dd>{{ r.record.generator_name }}</dd></div>
+    <div><dt>Creator</dt><dd>{{ r.record.creator }}</dd></div>
+    <div><dt>Registered</dt><dd>{{ r.record.registered_at }}</dd></div>
+    {% endif %}
+    <div><dt>Uploaded file</dt><dd>{{ r.filename }}</dd></div>
+    <div><dt>Uploaded SHA-256</dt><dd><code class="hash wrap">{{ r.sha256 }}</code></dd></div>
+  </dl>
+
+  {% if r.state == 'registered' %}
+  <p class="fine">
+    The uploaded hash will differ from the registered original if the file was changed. That is expected;
+    the watermark is what reconnects the copy. A match shows the file carries an identifier ModelLedger
+    recognises. The provenance comes from the registration record.
+  </p>
+  {% endif %}
+
+  <div class="actions">
+    <a class="btn primary" href="/verify">Verify another file</a>
+    <a class="btn ghost" href="/register">Register a file</a>
+  </div>
+{% endif %}
+
+</section>
+{% endblock %}

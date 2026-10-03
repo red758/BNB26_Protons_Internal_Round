@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block title %}ModelLedger{% endblock %}
+
+{% block content %}
+<section class="page">
+  <h1>Trace media back to where it was made.</h1>
+  <p class="lede">
+    ModelLedger hides a short identifier inside images, audio, video and documents.
+    After a file is compressed, forwarded or re-saved, the identifier can lead back
+    to its registered record, if it survived the trip.
+  </p>
+  <div class="actions">
+    <a class="btn primary" href="/register">Register a file</a>
+    <a class="btn ghost" href="/verify">Verify a file</a>
+  </div>
+
+  <div class="strip" id="strip" aria-label="Illustration of a file changing while its identifier stays the same">
+    <article class="stage">
+      <h3>Registered</h3>
+      <p>Original file, identifier embedded.</p>
+      <div class="k">File hash</div>
+      <code class="hash" data-final="9c1e4f07a2b8">9c1e4f07a2b8</code>
+      <div class="k">Identifier</div>
+      <code class="wmid">8F29A71C</code>
+    </article>
+    <article class="stage">
+      <h3>Sent in a chat app</h3>
+      <p>Re-encoded and compressed.</p>
+      <div class="k">File hash</div>
+      <code class="hash" data-final="e47d03b9156c">e47d03b9156c</code>
+      <div class="k">Identifier</div>
+      <code class="wmid">8F29A71C</code>
+    </article>
+    <article class="stage">
+      <h3>Downloaded</h3>
+      <p>Metadata gone, pixels or samples remain.</p>
+      <div class="k">File hash</div>
+      <code class="hash" data-final="31ab8e60d4f2">31ab8e60d4f2</code>
+      <div class="k">Identifier</div>
+      <code class="wmid">8F29A71C</code>
+    </article>
+    <article class="stage">
+      <h3>Verified</h3>
+      <p>Identifier recovered, record found.</p>
+      <div class="k">File hash</div>
+      <code class="hash" data-final="b60f92c7e815">b60f92c7e815</code>
+      <div class="k">Identifier</div>
+      <code class="wmid">8F29A71C</code>
+    </article>
+  </div>
+  <p class="fine">Illustration only. Whether an identifier survives depends on the file and the transformation, so ModelLedger measures it instead of assuming it.</p>
+</section>
+
+<section class="page tight">
+  <div class="cols">
+    <div>
+      <h2>What a match tells you</h2>
+      <ul class="plain">
+        <li>The file carries an identifier ModelLedger recognises.</li>
+        <li>That identifier points to a record made at registration.</li>
+        <li>Transformed copies can be reconnected when the watermark survives.</li>
+      </ul>
+    </div>
+    <div>
+      <h2>What it doesn't</h2>
+      <ul class="plain">
+        <li>No watermark does not mean a person made the file.</li>
+        <li>A watermark alone does not prove which model generated it.</li>
+        <li>Unregistered files are treated as unknown.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}Register a file - ModelLedger{% endblock %}
+
+{% block content %}
+<section class="page narrow">
+  <h1 class="h-sm">Register a file</h1>
+  <p class="lede">Upload the original. You get back a copy with an invisible identifier, and a record is saved.</p>
+
+  {% if error %}<p class="alert" role="alert">{{ error }}</p>{% endif %}
+
+  <form class="form" method="post" action="/register" enctype="multipart/form-data" data-busy="Registering…">
+    <div class="drop" data-max-mb="{{ max_mb|default(25) }}">
+      <input type="file" id="file" name="file" required
+             accept="image/*,audio/*,video/*,application/pdf" aria-describedby="file-msg">
+      <label for="file" class="drop-face">
+        <strong>Choose a file or drop it here</strong>
+        <span>Image, audio, video or PDF, up to {{ max_mb|default(25) }} MB</span>
+      </label>
+      <p class="drop-msg" id="file-msg" aria-live="polite"></p>
+      <input type="hidden" name="media_kind" value="">
+    </div>
+
+    <div class="field">
+      <label for="model_name">Model or source</label>
+      <input id="model_name" name="model_name" required maxlength="120" placeholder="Demo Image Model">
+    </div>
+    <div class="field">
+      <label for="generator_name">Generator</label>
+      <input id="generator_name" name="generator_name" required maxlength="120" placeholder="ModelLedger Generator">
+    </div>
+    <div class="field">
+      <label for="creator">Creator</label>
+      <input id="creator" name="creator" required maxlength="120" placeholder="Team ModelLedger">
+    </div>
+    <div class="field">
+      <label for="description">Description</label>
+      <textarea id="description" name="description" rows="3" maxlength="500" placeholder="Optional"></textarea>
+    </div>
+
+    <button class="btn primary" type="submit">Register file</button>
+  </form>
+</section>
+{% endblock %}

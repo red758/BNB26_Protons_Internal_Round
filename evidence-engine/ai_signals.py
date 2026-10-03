@@ -1,4 +1,3 @@
-
 """
 ModelLedger Evidence - AI Signals
 
@@ -91,7 +90,7 @@ _XMP_BLOCK_RE = re.compile(rb"<x:xmpmeta.*?</x:xmpmeta>", re.DOTALL)
 _DST_PATTERNS = [
     re.compile(r"DigitalSourceType\s*=\s*[\"']([^\"']+)[\"']"),
     re.compile(r"DigitalSourceType[^>]*?rdf:resource\s*=\s*[\"']([^\"']+)[\"']"),
-    re.compile(r"DigitalSourceType\s*>\s*([^<]+?)\s*<"),
+    re.compile(r"DigitalSourceType\s*>\s*([^<\s][^<]*?)\s*<"),
 ]
 
 
@@ -334,7 +333,8 @@ def _collect_xmp(asset_path: Path) -> list[AISignal]:
 
         for pattern in _DST_PATTERNS:
             for value in pattern.findall(text):
-                signals.append(_digital_source_signal(value, "xmp"))
+                if _term(value):
+                    signals.append(_digital_source_signal(value, "xmp"))
 
         signals.extend(_keyword_signals(text, "xmp"))
 

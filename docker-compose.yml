@@ -1,0 +1,75 @@
+version: '3.8'
+
+services:
+  # ==========================================
+  # 1. PostgreSQL Database with pgvector Extension
+  # ==========================================
+  db:
+    image: pgvector/pgvector:pg16
+    container_name: provledger-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: provledger
+      POSTGRES_PASSWORD: provledger
+      POSTGRES_DB: provledger
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U provledger -d provledger"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - provledger-net
+
+  # ==========================================
+  # 2. FastAPI Backend Engine
+  # ==========================================
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: provledger-backend
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://provledger:provledger@db:5432/provledger
+      SECRET_KEY: provledger-production-secret-key-32b
+      CORS_ORIGINS: http://localhost:3000,http://frontend:3000
+      PORT: 8000
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - provledger-net
+
+  # ==========================================
+  # 3. Next.js Frontend Application Tier
+  # ==========================================
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_BASE: http://backend:8000
+    container_name: provledger-frontend
+    restart: unless-stopped
+    environment:
+      PORT: 3000
+      NEXT_PUBLIC_API_BASE: http://localhost:8000
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    networks:
+      - provledger-net
+
+volumes:
+  pgdata:
+
+networks:
+  provledger-net:
+    driver: bridge

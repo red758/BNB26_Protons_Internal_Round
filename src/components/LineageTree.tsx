@@ -1,7 +1,20 @@
 'use client';
 
+import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { CheckCircle2, Cpu, ArrowDown, Layers, Sliders, ShieldCheck } from 'lucide-react';
+import {
+  CheckCircle2,
+  Cpu,
+  ArrowDown,
+  Layers,
+  Sliders,
+  ShieldCheck,
+  Video,
+  Play,
+  Clock,
+  Monitor,
+  Clapperboard,
+} from 'lucide-react';
 import type { VerificationResult, HistoryEvent } from '@/services/client';
 import { formatTimestamp, truncateHash } from '@/services/client';
 
@@ -10,74 +23,115 @@ interface LineageTreeProps {
   artifactPreviewUrl?: string;
 }
 
-const ACTION_COLORS: Record<string, { dot: string; badge: string; text: string }> = {
-  GENERATED:   { dot: 'bg-blue-500',    badge: 'bg-blue-100  text-blue-700',   text: 'text-blue-700'   },
-  TRANSFORMED: { dot: 'bg-violet-500',  badge: 'bg-violet-100 text-violet-700', text: 'text-violet-700' },
-  CURRENT:     { dot: 'bg-emerald-500', badge: 'bg-emerald-100 text-emerald-700',text: 'text-emerald-700'},
-  DEFAULT:     { dot: 'bg-gray-400',    badge: 'bg-gray-100  text-gray-600',    text: 'text-gray-600'   },
+const ACTION_COLORS: Record<string, { dot: string; badge: string }> = {
+  GENERATED:                { dot: 'bg-blue-500',    badge: 'bg-blue-100 text-blue-700' },
+  TRANSFORMED:              { dot: 'bg-violet-500',  badge: 'bg-violet-100 text-violet-700' },
+  'RE-ENCODED':             { dot: 'bg-violet-500',  badge: 'bg-violet-100 text-violet-700' },
+  'CLAIMED GENERATION':     { dot: 'bg-orange-400',  badge: 'bg-orange-100 text-orange-700' },
+  'UNAUTHORIZED MODIFICATION': { dot: 'bg-red-500',  badge: 'bg-red-100 text-red-700' },
+  'GENERATED (ZERO-KNOWLEDGE)': { dot: 'bg-blue-500', badge: 'bg-blue-100 text-blue-700' },
+  CURRENT:                  { dot: 'bg-emerald-500', badge: 'bg-emerald-100 text-emerald-700' },
 };
 
 function getColors(action: string) {
-  return ACTION_COLORS[action.toUpperCase()] || ACTION_COLORS.DEFAULT;
+  return ACTION_COLORS[action] || ACTION_COLORS[action.toUpperCase()] || { dot: 'bg-gray-400', badge: 'bg-gray-100 text-gray-600' };
 }
 
 export default function LineageTree({ result, artifactPreviewUrl }: LineageTreeProps) {
   const { history, artifact, status, multi_system, transformation } = result;
+  const isVideo = artifact.kind === 'video';
+  const vm = artifact.video_metadata;
 
   return (
     <section
       id="provenance"
       className="w-full max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-6"
     >
-      {/* LEFT: Artifact preview */}
+      {/* LEFT: Artifact Preview */}
       <motion.div
         initial={{ opacity: 0, x: -20 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
         className="flex flex-col gap-4"
       >
-        <SectionLabel>ARTIFACT INSPECTION</SectionLabel>
-
-        {/* Image preview */}
-        <div className="relative bg-white rounded-2xl border border-black/[0.07] shadow-sm overflow-hidden aspect-square sm:aspect-[4/3]">
-          {artifactPreviewUrl ? (
-            <img
-              src={artifactPreviewUrl}
-              alt={artifact.name}
-              className="w-full h-full object-contain"
-            />
-          ) : (
-            <div className="w-full h-full flex flex-col items-center justify-center gap-3 text-gray-200">
-              <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
-                <rect x="6" y="6" width="36" height="36" rx="8" stroke="currentColor" strokeWidth="2"/>
-                <circle cx="18" cy="19" r="3.5" stroke="currentColor" strokeWidth="1.8"/>
-                <path d="M6 32 L16 22 L24 30 L32 21 L42 32" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round"/>
-              </svg>
-              <span className="text-[13px] font-medium text-gray-300">Preview unavailable</span>
-            </div>
+        <div className="flex items-center justify-between">
+          <SectionLabel>ARTIFACT INSPECTION</SectionLabel>
+          {isVideo && (
+            <span className="flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 border border-blue-200">
+              <Video className="w-2.5 h-2.5" /> VIDEO
+            </span>
           )}
         </div>
 
-        {/* File metadata */}
+        {/* Preview container */}
+        <div
+          className={`
+            relative bg-black/5 rounded-2xl border border-black/[0.07] shadow-sm overflow-hidden
+            ${isVideo ? 'aspect-video' : 'aspect-square sm:aspect-[4/3]'}
+          `}
+        >
+          {artifactPreviewUrl ? (
+            isVideo ? (
+              <VideoPlayer src={artifactPreviewUrl} />
+            ) : (
+              <img
+                src={artifactPreviewUrl}
+                alt={artifact.name}
+                className="w-full h-full object-contain bg-white"
+              />
+            )
+          ) : (
+            <NoPreview isVideo={isVideo} />
+          )}
+        </div>
+
+        {/* Metadata card */}
         <div className="bg-white rounded-xl border border-black/[0.07] p-4 space-y-2.5">
           <MetaRow label="Filename" value={artifact.name} />
-          <MetaRow label="Size" value={artifact.size} />
-          <MetaRow label="Type" value={artifact.type} />
-          {transformation?.transformation_type && (
-            <MetaRow label="Transformation" value={transformation.transformation_type} />
+          <MetaRow label="Size"     value={artifact.size} />
+          <MetaRow label="Type"     value={artifact.type} />
+
+          {/* Video-specific metadata rows */}
+          {isVideo && vm && (
+            <>
+              {vm.duration && <MetaRow label="Duration"   value={vm.duration} />}
+              {vm.resolution && <MetaRow label="Resolution" value={vm.resolution} />}
+              {vm.fps && <MetaRow label="Frame Rate"  value={vm.fps} />}
+              {vm.codec && <MetaRow label="Codec"       value={vm.codec} />}
+              {vm.frame_count && (
+                <MetaRow label="Frames" value={`${vm.frame_count.toLocaleString()} frames`} />
+              )}
+            </>
           )}
+
+          {/* Transformation type */}
+          {transformation?.transformation_type && (
+            <MetaRow label="Transform" value={transformation.transformation_type} />
+          )}
+
+          {/* SHA-256 hash */}
           <div className="pt-1 border-t border-gray-100">
             <p className="text-[10px] font-semibold tracking-[0.12em] uppercase text-gray-400 mb-1">
-              SHA-256
+              {isVideo ? 'SHA-256 (Full File)' : 'SHA-256'}
             </p>
             <p className="text-[11px] font-mono text-gray-600 break-all leading-relaxed">
               {artifact.hash}
             </p>
           </div>
+
+          {/* Key-frame sampling note for video */}
+          {isVideo && vm?.sampling_strategy && (
+            <div className="flex items-start gap-2 pt-1 border-t border-gray-100">
+              <Clapperboard className="w-3 h-3 text-blue-400 mt-0.5 flex-shrink-0" />
+              <p className="text-[11px] text-blue-600 leading-snug">
+                {vm.sampling_strategy}
+              </p>
+            </div>
+          )}
         </div>
       </motion.div>
 
-      {/* RIGHT: Lineage Tree Timeline (Feature 3 & 4) */}
+      {/* RIGHT: Lineage Tree */}
       <motion.div
         initial={{ opacity: 0, x: 20 }}
         animate={{ opacity: 1, x: 0 }}
@@ -85,7 +139,9 @@ export default function LineageTree({ result, artifactPreviewUrl }: LineageTreeP
         className="flex flex-col gap-4"
       >
         <div className="flex items-center justify-between">
-          <SectionLabel>MULTI-SYSTEM PROVENANCE LINEAGE</SectionLabel>
+          <SectionLabel>
+            {isVideo ? 'VIDEO PROVENANCE LINEAGE' : 'MULTI-SYSTEM PROVENANCE LINEAGE'}
+          </SectionLabel>
           {multi_system?.systems_count > 0 && (
             <span className="text-[11px] font-semibold text-blue-600 flex items-center gap-1">
               <Layers className="w-3 h-3" /> {multi_system.systems_count} AI Engines
@@ -102,7 +158,7 @@ export default function LineageTree({ result, artifactPreviewUrl }: LineageTreeP
           </div>
         ) : (
           <div className="relative">
-            {/* Vertical connecting line */}
+            {/* Vertical connector */}
             <div className="absolute left-[19px] top-5 bottom-5 w-px bg-gradient-to-b from-gray-200 via-gray-200 to-transparent" />
 
             <div className="space-y-1">
@@ -112,12 +168,12 @@ export default function LineageTree({ result, artifactPreviewUrl }: LineageTreeP
                   event={event}
                   index={i}
                   isLast={i === history.length - 1}
-                  isVerified={status === 'verified'}
+                  isVideo={isVideo}
                 />
               ))}
             </div>
 
-            {/* Chain validity */}
+            {/* Chain validity badge */}
             {result.chain_valid && (
               <motion.div
                 initial={{ opacity: 0 }}
@@ -127,7 +183,9 @@ export default function LineageTree({ result, artifactPreviewUrl }: LineageTreeP
               >
                 <ShieldCheck className="w-4 h-4 text-emerald-500 flex-shrink-0" />
                 <span className="text-[12px] font-semibold text-emerald-700 tracking-wide">
-                  ✓ MULTI-SYSTEM CHAIN INTEGRITY VERIFIED
+                  {isVideo
+                    ? '✓ VIDEO PROVENANCE CHAIN VERIFIED'
+                    : '✓ MULTI-SYSTEM CHAIN INTEGRITY VERIFIED'}
                 </span>
               </motion.div>
             )}
@@ -138,16 +196,63 @@ export default function LineageTree({ result, artifactPreviewUrl }: LineageTreeP
   );
 }
 
+// ── Sub-components ────────────────────────────────────────────
+
+function VideoPlayer({ src }: { src: string }) {
+  const [playing, setPlaying] = useState(false);
+  return (
+    <div className="relative w-full h-full bg-black group">
+      <video
+        src={src}
+        className="w-full h-full object-contain"
+        controls
+        onPlay={() => setPlaying(true)}
+        onPause={() => setPlaying(false)}
+      />
+      {/* Overlay badge */}
+      {!playing && (
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <div className="w-12 h-12 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center">
+            <Play className="w-5 h-5 text-white fill-white ml-0.5" />
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function NoPreview({ isVideo }: { isVideo: boolean }) {
+  return (
+    <div className="w-full h-full flex flex-col items-center justify-center gap-3 text-gray-300">
+      {isVideo ? (
+        <>
+          <Video className="w-12 h-12" />
+          <span className="text-[13px] font-medium">Video preview unavailable</span>
+        </>
+      ) : (
+        <>
+          <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+            <rect x="6" y="6" width="36" height="36" rx="8" stroke="currentColor" strokeWidth="2" />
+            <circle cx="18" cy="19" r="3.5" stroke="currentColor" strokeWidth="1.8" />
+            <path d="M6 32 L16 22 L24 30 L32 21 L42 32" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
+          </svg>
+          <span className="text-[13px] font-medium">Preview unavailable</span>
+        </>
+      )}
+    </div>
+  );
+}
+
 function TimelineEvent({
   event,
   index,
   isLast,
-  isVerified,
+  isVideo,
 }: {
   event: HistoryEvent;
   index: number;
   isLast: boolean;
-  isVerified: boolean;
+  isVideo: boolean;
 }) {
   const colors = getColors(event.action);
 
@@ -168,6 +273,8 @@ function TimelineEvent({
         >
           {event.action.toUpperCase().includes('CURRENT') ? (
             <CheckCircle2 className="w-4 h-4 text-white" />
+          ) : isVideo ? (
+            <Clapperboard className="w-4 h-4 text-white opacity-90" />
           ) : (
             <Cpu className="w-4 h-4 text-white opacity-80" />
           )}
@@ -183,9 +290,7 @@ function TimelineEvent({
       <div className="flex-1 bg-white rounded-xl border border-black/[0.06] shadow-sm p-4 mb-3 group-last:mb-0">
         <div className="flex items-start justify-between gap-2 mb-2">
           <div>
-            <span
-              className={`inline-block text-[10px] font-bold tracking-[0.14em] uppercase px-2 py-0.5 rounded-full ${colors.badge}`}
-            >
+            <span className={`inline-block text-[10px] font-bold tracking-[0.12em] uppercase px-2 py-0.5 rounded-full ${colors.badge}`}>
               ● {event.action}
             </span>
             <p className="mt-1 text-[13px] font-semibold text-gray-800">{event.model}</p>
@@ -198,18 +303,24 @@ function TimelineEvent({
           </p>
         </div>
 
+        {/* Perceptual distance for transformations */}
         {event.perceptual_distance !== undefined && (
           <div className="mb-2 flex items-center gap-1.5 text-[11px] font-medium text-violet-700 bg-violet-50 p-1.5 rounded-lg border border-violet-100">
-            <Sliders className="w-3 h-3" />
-            <span>Perceptual Distance: {event.perceptual_distance} bits (Preserved)</span>
+            <Sliders className="w-3 h-3 flex-shrink-0" />
+            <span>
+              Perceptual Distance: {event.perceptual_distance}{' '}
+              {isVideo ? 'bits (Video Frame Hash Delta)' : 'bits (Preserved)'}
+            </span>
           </div>
         )}
 
+        {/* Hashes */}
         <div className="space-y-1.5">
-          {event.parent_hash && (
-            <HashRow label="Parent" hash={event.parent_hash} />
-          )}
-          <HashRow label={event.action === 'CURRENT' ? 'Hash' : 'New Hash'} hash={event.hash} />
+          {event.parent_hash && <HashRow label="Parent" hash={event.parent_hash} />}
+          <HashRow
+            label={event.action.includes('CURRENT') ? 'Hash' : 'New Hash'}
+            hash={event.hash}
+          />
         </div>
       </div>
     </motion.div>

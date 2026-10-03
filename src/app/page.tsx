@@ -45,7 +45,7 @@ export default function Home() {
     setIsVerifying(true);
 
     if (previewUrl) URL.revokeObjectURL(previewUrl);
-    if (file.type.startsWith('image/')) {
+    if (file.type.startsWith('image/') || file.type.startsWith('video/')) {
       setPreviewUrl(URL.createObjectURL(file));
     } else {
       setPreviewUrl(null);

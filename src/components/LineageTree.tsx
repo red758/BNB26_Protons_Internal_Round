@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { CheckCircle2, Cpu, ArrowDown } from 'lucide-react';
+import { CheckCircle2, Cpu, ArrowDown, Layers, Sliders, ShieldCheck } from 'lucide-react';
 import type { VerificationResult, HistoryEvent } from '@/services/client';
 import { formatTimestamp, truncateHash } from '@/services/client';
 
@@ -22,7 +22,7 @@ function getColors(action: string) {
 }
 
 export default function LineageTree({ result, artifactPreviewUrl }: LineageTreeProps) {
-  const { history, artifact, status } = result;
+  const { history, artifact, status, multi_system, transformation } = result;
 
   return (
     <section
@@ -36,7 +36,7 @@ export default function LineageTree({ result, artifactPreviewUrl }: LineageTreeP
         transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
         className="flex flex-col gap-4"
       >
-        <SectionLabel>ARTIFACT</SectionLabel>
+        <SectionLabel>ARTIFACT INSPECTION</SectionLabel>
 
         {/* Image preview */}
         <div className="relative bg-white rounded-2xl border border-black/[0.07] shadow-sm overflow-hidden aspect-square sm:aspect-[4/3]">
@@ -63,6 +63,9 @@ export default function LineageTree({ result, artifactPreviewUrl }: LineageTreeP
           <MetaRow label="Filename" value={artifact.name} />
           <MetaRow label="Size" value={artifact.size} />
           <MetaRow label="Type" value={artifact.type} />
+          {transformation?.transformation_type && (
+            <MetaRow label="Transformation" value={transformation.transformation_type} />
+          )}
           <div className="pt-1 border-t border-gray-100">
             <p className="text-[10px] font-semibold tracking-[0.12em] uppercase text-gray-400 mb-1">
               SHA-256
@@ -74,14 +77,21 @@ export default function LineageTree({ result, artifactPreviewUrl }: LineageTreeP
         </div>
       </motion.div>
 
-      {/* RIGHT: Lineage Tree Timeline */}
+      {/* RIGHT: Lineage Tree Timeline (Feature 3 & 4) */}
       <motion.div
         initial={{ opacity: 0, x: 20 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1], delay: 0.08 }}
         className="flex flex-col gap-4"
       >
-        <SectionLabel>PROVENANCE HISTORY</SectionLabel>
+        <div className="flex items-center justify-between">
+          <SectionLabel>MULTI-SYSTEM PROVENANCE LINEAGE</SectionLabel>
+          {multi_system?.systems_count > 0 && (
+            <span className="text-[11px] font-semibold text-blue-600 flex items-center gap-1">
+              <Layers className="w-3 h-3" /> {multi_system.systems_count} AI Engines
+            </span>
+          )}
+        </div>
 
         {history.length === 0 ? (
           <div className="flex-1 flex items-center justify-center py-16 text-center">
@@ -115,9 +125,9 @@ export default function LineageTree({ result, artifactPreviewUrl }: LineageTreeP
                 transition={{ delay: 0.6 }}
                 className="mt-4 flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-50 border border-emerald-100"
               >
-                <CheckCircle2 className="w-4 h-4 text-emerald-500 flex-shrink-0" />
+                <ShieldCheck className="w-4 h-4 text-emerald-500 flex-shrink-0" />
                 <span className="text-[12px] font-semibold text-emerald-700 tracking-wide">
-                  ✓ CHAIN VERIFIED
+                  ✓ MULTI-SYSTEM CHAIN INTEGRITY VERIFIED
                 </span>
               </motion.div>
             )}
@@ -156,7 +166,7 @@ function TimelineEvent({
           transition={{ delay: 0.2 + index * 0.1, type: 'spring', stiffness: 500 }}
           className={`w-10 h-10 rounded-full border-2 border-white shadow-sm flex items-center justify-center z-10 ${colors.dot}`}
         >
-          {event.action.toUpperCase() === 'CURRENT' ? (
+          {event.action.toUpperCase().includes('CURRENT') ? (
             <CheckCircle2 className="w-4 h-4 text-white" />
           ) : (
             <Cpu className="w-4 h-4 text-white opacity-80" />
@@ -171,7 +181,6 @@ function TimelineEvent({
 
       {/* Card */}
       <div className="flex-1 bg-white rounded-xl border border-black/[0.06] shadow-sm p-4 mb-3 group-last:mb-0">
-        {/* Header */}
         <div className="flex items-start justify-between gap-2 mb-2">
           <div>
             <span
@@ -180,13 +189,22 @@ function TimelineEvent({
               ● {event.action}
             </span>
             <p className="mt-1 text-[13px] font-semibold text-gray-800">{event.model}</p>
+            {event.system_app && (
+              <p className="text-[11px] text-gray-400">System: {event.system_app}</p>
+            )}
           </div>
           <p className="text-[11px] text-gray-400 whitespace-nowrap text-right leading-tight">
             {formatTimestamp(event.timestamp)}
           </p>
         </div>
 
-        {/* Hashes */}
+        {event.perceptual_distance !== undefined && (
+          <div className="mb-2 flex items-center gap-1.5 text-[11px] font-medium text-violet-700 bg-violet-50 p-1.5 rounded-lg border border-violet-100">
+            <Sliders className="w-3 h-3" />
+            <span>Perceptual Distance: {event.perceptual_distance} bits (Preserved)</span>
+          </div>
+        )}
+
         <div className="space-y-1.5">
           {event.parent_hash && (
             <HashRow label="Parent" hash={event.parent_hash} />

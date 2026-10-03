@@ -3,7 +3,7 @@
 import { useCallback, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Upload, File as FileIcon, Loader2, ChevronRight } from 'lucide-react';
+import { Upload, File as FileIcon, Loader2, ChevronRight, ShieldCheck, ShieldAlert, Lock, SlidersHorizontal, AlertTriangle } from 'lucide-react';
 import type { MockMode } from '@/services/client';
 
 interface DragDropZoneProps {
@@ -13,11 +13,13 @@ interface DragDropZoneProps {
   onMockModeChange: (mode: MockMode) => void;
 }
 
-const MOCK_OPTIONS: { value: MockMode; label: string; color: string }[] = [
-  { value: 'live',        label: 'Live (Auto)',   color: 'text-gray-600' },
-  { value: 'verified',    label: 'Verified',      color: 'text-emerald-600' },
-  { value: 'tampered',    label: 'Tampered',      color: 'text-red-600' },
-  { value: 'unregistered',label: 'No Record',     color: 'text-amber-600' },
+const MOCK_OPTIONS: { value: MockMode; label: string; icon: any; color: string; desc: string }[] = [
+  { value: 'live',        label: 'Live (Auto)',       icon: SlidersHorizontal, color: 'text-gray-600',   desc: 'Live backend / local lookup' },
+  { value: 'verified',    label: 'Verified',          icon: ShieldCheck,       color: 'text-emerald-600', desc: 'Provenance Verification & Trust' },
+  { value: 'transformed', label: 'Transformed',       icon: SlidersHorizontal, color: 'text-violet-600',  desc: 'Transformation & Multi-System Lineage' },
+  { value: 'tampered',    label: 'Adversarial Tamper',icon: ShieldAlert,       color: 'text-red-600',     desc: 'Tamper Detection & Inconsistencies' },
+  { value: 'privacy',     label: 'Privacy Shielded',  icon: Lock,              color: 'text-blue-600',    desc: 'Privacy-Preserving Salted Hash' },
+  { value: 'unregistered',label: 'No Record',         icon: AlertTriangle,     color: 'text-amber-600',   desc: 'Unregistered Artifact' },
 ];
 
 export default function DragDropZone({ onVerify, isLoading, mockMode, onMockModeChange }: DragDropZoneProps) {
@@ -39,7 +41,7 @@ export default function DragDropZone({ onVerify, isLoading, mockMode, onMockMode
   };
 
   const handleDemoClick = () => {
-    const demoFile = new globalThis.File(['demo artifact content'], 'ai-generated-image.png', {
+    const demoFile = new globalThis.File(['demo artifact content'], 'ai-generated-landscape.png', {
       type: 'image/png',
     });
     onVerify(demoFile);
@@ -154,26 +156,40 @@ export default function DragDropZone({ onVerify, isLoading, mockMode, onMockMode
         </button>
       </div>
 
-      {/* Dev toggle */}
-      <div className="mt-5 flex items-center justify-center gap-2 flex-wrap">
-        <span className="text-[11px] font-medium text-gray-300 uppercase tracking-widest">
-          Demo mode
-        </span>
-        {MOCK_OPTIONS.map((opt) => (
-          <button
-            key={opt.value}
-            onClick={() => onMockModeChange(opt.value)}
-            className={`
-              text-[11px] font-medium px-2.5 py-1 rounded-full border transition-all
-              ${mockMode === opt.value
-                ? `border-current bg-current/10 ${opt.color}`
-                : 'border-gray-200 text-gray-300 hover:border-gray-300 hover:text-gray-400'
-              }
-            `}
-          >
-            {opt.label}
-          </button>
-        ))}
+      {/* Dev & Feature Demo Selector */}
+      <div className="mt-6 pt-5 border-t border-black/[0.06]">
+        <div className="flex items-center justify-between mb-3">
+          <span className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">
+            FEATURE DEMO SCENARIOS
+          </span>
+          <span className="text-[11px] text-gray-400 font-medium">
+            Simulates Backend Parameters
+          </span>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+          {MOCK_OPTIONS.map((opt) => {
+            const Icon = opt.icon;
+            const isSelected = mockMode === opt.value;
+            return (
+              <button
+                key={opt.value}
+                onClick={() => onMockModeChange(opt.value)}
+                className={`
+                  flex items-center gap-2 px-3 py-2 rounded-xl text-left border transition-all text-xs font-medium
+                  ${isSelected
+                    ? `border-blue-500/50 bg-blue-50/80 shadow-sm ${opt.color}`
+                    : 'border-gray-200/80 bg-white/50 text-gray-600 hover:bg-white hover:border-gray-300'
+                  }
+                `}
+                title={opt.desc}
+              >
+                <Icon className={`w-3.5 h-3.5 flex-shrink-0 ${isSelected ? opt.color : 'text-gray-400'}`} />
+                <span className="truncate">{opt.label}</span>
+              </button>
+            );
+          })}
+        </div>
       </div>
     </section>
   );

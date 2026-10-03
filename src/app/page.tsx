@@ -9,8 +9,19 @@ import LineageTree from '@/components/LineageTree';
 import CryptoProof from '@/components/CryptoProof';
 import VerifyingState from '@/components/VerifyingState';
 import { verifyArtifact, type VerificationResult, type MockMode } from '@/services/client';
+import { ShieldCheck, ShieldAlert, Sliders, Layers, Lock, AlertTriangle, Cpu } from 'lucide-react';
 
 const STEP_TIMINGS = [500, 900, 1500, 2000];
+
+const KEY_FEATURES = [
+  { icon: ShieldCheck, title: 'Provenance Verification', desc: 'Verifies claimed origin & generation history' },
+  { icon: ShieldAlert, title: 'Provenance Trust', desc: 'Evaluates verifiable evidence & trust levels' },
+  { icon: Sliders, title: 'Transformation Handling', desc: 'Preserves lineage across edits & format changes' },
+  { icon: Layers, title: 'Multi-System Provenance', desc: 'Tracks artifacts across multi-stage AI pipelines' },
+  { icon: AlertTriangle, title: 'Tamper Detection', desc: 'Flags payload alterations & inconsistent claims' },
+  { icon: Lock, title: 'Privacy-Preserving ZK', desc: 'Salted prompt hash without exposing prompt data' },
+  { icon: Cpu, title: 'Adversarial Testing', desc: 'Resilient evaluation against fabricated manifests' },
+];
 
 export default function Home() {
   const [mockMode, setMockMode] = useState<MockMode>('live');
@@ -70,7 +81,7 @@ export default function Home() {
       <Navbar />
 
       {/* Hero Header */}
-      <section className="pt-32 pb-16 px-4 text-center">
+      <section className="pt-32 pb-12 px-4 text-center">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -78,7 +89,7 @@ export default function Home() {
           className="max-w-3xl mx-auto"
         >
           <p className="text-[11px] font-bold tracking-[0.22em] uppercase text-blue-600 mb-4">
-            AI Content Provenance System
+            Cryptographic AI Content Provenance System
           </p>
 
           <h1 className="text-4xl sm:text-5xl lg:text-[3.75rem] font-bold leading-[1.08] tracking-tight text-gray-900 mb-5">
@@ -86,7 +97,7 @@ export default function Home() {
             <span className="text-blue-600">ORIGIN OF AI CONTENT.</span>
           </h1>
 
-          <p className="text-[16px] sm:text-[17px] text-gray-500 leading-relaxed max-w-xl mx-auto mb-12">
+          <p className="text-[16px] sm:text-[17px] text-gray-500 leading-relaxed max-w-xl mx-auto mb-10">
             Trace an artifact from creation through every transformation —
             and verify its provenance with cryptographic evidence.
           </p>
@@ -98,6 +109,29 @@ export default function Home() {
             onMockModeChange={setMockMode}
           />
         </motion.div>
+      </section>
+
+      {/* 7 Key Features Highlights Bar */}
+      <section className="max-w-5xl mx-auto px-4 pb-12">
+        <div className="bg-white/70 backdrop-blur-xl rounded-2xl border border-black/[0.06] p-6 shadow-sm">
+          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-400 mb-4 text-center">
+            CORE PROVENANCE INSPECTION CAPABILITIES
+          </p>
+          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3 text-center">
+            {KEY_FEATURES.map((feat, i) => {
+              const Icon = feat.icon;
+              return (
+                <div key={i} className="p-2.5 rounded-xl bg-gray-50/80 border border-gray-100/80 flex flex-col items-center">
+                  <div className="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center mb-1.5">
+                    <Icon className="w-3.5 h-3.5" />
+                  </div>
+                  <p className="text-[11px] font-bold text-gray-800 leading-tight">{feat.title}</p>
+                  <p className="text-[9.5px] text-gray-400 mt-0.5 leading-tight">{feat.desc}</p>
+                </div>
+              );
+            })}
+          </div>
+        </div>
       </section>
 
       {/* Results */}

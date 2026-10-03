@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { useCallback, useState } from 'react';
-import { useDropzone } from 'react-dropzone';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useCallback, useState } from "react";
+import { useDropzone } from "react-dropzone";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Upload,
   File as FileIcon,
@@ -15,8 +15,8 @@ import {
   SlidersHorizontal,
   AlertTriangle,
   Clapperboard,
-} from 'lucide-react';
-import type { MockMode } from '@/services/client';
+} from "lucide-react";
+import type { MockMode } from "@/services/client";
 
 interface DragDropZoneProps {
   onVerify: (file: File) => void;
@@ -25,29 +25,77 @@ interface DragDropZoneProps {
   onMockModeChange: (mode: MockMode) => void;
 }
 
-const MOCK_OPTIONS: { value: MockMode; label: string; icon: any; color: string; desc: string }[] = [
-  { value: 'live',        label: 'Live (Auto)',       icon: SlidersHorizontal, color: 'text-gray-600',   desc: 'Calls real backend / local API' },
-  { value: 'verified',    label: 'Verified',          icon: ShieldCheck,       color: 'text-emerald-600', desc: 'High-trust verified image' },
-  { value: 'video',       label: 'Video Verified',    icon: Clapperboard,      color: 'text-blue-600',    desc: 'Full video provenance chain' },
-  { value: 'transformed', label: 'Transformed',       icon: SlidersHorizontal, color: 'text-violet-600',  desc: 'Transformation & Multi-System' },
-  { value: 'tampered',    label: 'Adversarial',       icon: ShieldAlert,       color: 'text-red-600',     desc: 'Tamper detection scenario' },
-  { value: 'privacy',     label: 'Privacy Shielded',  icon: Lock,              color: 'text-blue-600',    desc: 'Zero-knowledge provenance' },
-  { value: 'unregistered',label: 'No Record',         icon: AlertTriangle,     color: 'text-amber-600',   desc: 'Unregistered artifact' },
+const MOCK_OPTIONS: {
+  value: MockMode;
+  label: string;
+  icon: any;
+  color: string;
+  desc: string;
+}[] = [
+  {
+    value: "live",
+    label: "Live (Auto)",
+    icon: SlidersHorizontal,
+    color: "text-gray-600",
+    desc: "Calls real backend / local API",
+  },
+  {
+    value: "verified",
+    label: "Verified",
+    icon: ShieldCheck,
+    color: "text-emerald-600",
+    desc: "High-trust verified image",
+  },
+  {
+    value: "video",
+    label: "Video Verified",
+    icon: Clapperboard,
+    color: "text-blue-600",
+    desc: "Full video provenance chain",
+  },
+  {
+    value: "transformed",
+    label: "Transformed",
+    icon: SlidersHorizontal,
+    color: "text-violet-600",
+    desc: "Transformation & Multi-System",
+  },
+  {
+    value: "tampered",
+    label: "Adversarial",
+    icon: ShieldAlert,
+    color: "text-red-600",
+    desc: "Tamper detection scenario",
+  },
+  {
+    value: "privacy",
+    label: "Privacy Shielded",
+    icon: Lock,
+    color: "text-blue-600",
+    desc: "Zero-knowledge provenance",
+  },
+  {
+    value: "unregistered",
+    label: "No Record",
+    icon: AlertTriangle,
+    color: "text-amber-600",
+    desc: "Unregistered artifact",
+  },
 ];
 
 const ACCEPTED_TYPES = {
-  'image/png': ['.png'],
-  'image/jpeg': ['.jpg', '.jpeg'],
-  'image/webp': ['.webp'],
-  'image/gif': ['.gif'],
-  'video/mp4': ['.mp4'],
-  'video/webm': ['.webm'],
-  'video/quicktime': ['.mov'],
-  'video/x-msvideo': ['.avi'],
+  "image/png": [".png"],
+  "image/jpeg": [".jpg", ".jpeg"],
+  "image/webp": [".webp"],
+  "image/gif": [".gif"],
+  "video/mp4": [".mp4"],
+  "video/webm": [".webm"],
+  "video/quicktime": [".mov"],
+  "video/x-msvideo": [".avi"],
 };
 
 function isVideoFile(file: File) {
-  return file.type.startsWith('video/');
+  return file.type.startsWith("video/");
 }
 
 export default function DragDropZone({
@@ -87,10 +135,14 @@ export default function DragDropZone({
 
   const handleDemoClick = () => {
     // Use video demo if video mode selected
-    const isVideoMode = mockMode === 'video';
-    const fileName = isVideoMode ? 'ai-generated-cinematic.mp4' : 'ai-generated-landscape.png';
-    const fileType = isVideoMode ? 'video/mp4' : 'image/png';
-    const demoFile = new globalThis.File(['demo artifact content'], fileName, { type: fileType });
+    const isVideoMode = mockMode === "video";
+    const fileName = isVideoMode
+      ? "ai-generated-cinematic.mp4"
+      : "ai-generated-landscape.png";
+    const fileType = isVideoMode ? "video/mp4" : "image/png";
+    const demoFile = new globalThis.File(["demo artifact content"], fileName, {
+      type: fileType,
+    });
     onVerify(demoFile);
   };
 
@@ -103,22 +155,22 @@ export default function DragDropZone({
         {...(getRootProps() as any)}
         animate={{
           borderColor: isDragActive
-            ? 'rgba(59,130,246,0.8)'
+            ? "rgba(59,130,246,0.8)"
             : staged
-            ? 'rgba(59,130,246,0.4)'
-            : 'rgba(0,0,0,0.12)',
+              ? "rgba(59,130,246,0.4)"
+              : "rgba(0,0,0,0.12)",
           backgroundColor: isDragActive
-            ? 'rgba(239,246,255,0.8)'
+            ? "rgba(239,246,255,0.8)"
             : staged
-            ? 'rgba(239,246,255,0.4)'
-            : 'rgba(255,255,255,0.7)',
+              ? "rgba(239,246,255,0.4)"
+              : "rgba(255,255,255,0.7)",
           boxShadow: isDragActive
-            ? '0 0 0 4px rgba(59,130,246,0.12), 0 8px 32px rgba(0,0,0,0.06)'
-            : '0 4px 24px rgba(0,0,0,0.05)',
+            ? "0 0 0 4px rgba(59,130,246,0.12), 0 8px 32px rgba(0,0,0,0.06)"
+            : "0 4px 24px rgba(0,0,0,0.05)",
         }}
         transition={{ duration: 0.2 }}
         className="relative cursor-pointer rounded-2xl border-2 border-dashed p-10 sm:p-14 text-center backdrop-blur-xl"
-        style={{ outline: 'none' }}
+        style={{ outline: "none" }}
       >
         <input {...getInputProps()} />
 
@@ -145,7 +197,9 @@ export default function DragDropZone({
                   </div>
                 </div>
               ) : (
-                <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${stagedIsVideo ? 'bg-blue-100' : 'bg-blue-100'}`}>
+                <div
+                  className={`w-12 h-12 rounded-xl flex items-center justify-center ${stagedIsVideo ? "bg-blue-100" : "bg-blue-100"}`}
+                >
                   {stagedIsVideo ? (
                     <Video className="w-6 h-6 text-blue-600" />
                   ) : (
@@ -154,7 +208,9 @@ export default function DragDropZone({
                 </div>
               )}
               <div>
-                <p className="font-semibold text-gray-900 text-[15px]">{staged.name}</p>
+                <p className="font-semibold text-gray-900 text-[15px]">
+                  {staged.name}
+                </p>
                 <p className="text-[13px] text-gray-400 mt-0.5">
                   {(staged.size / 1048576).toFixed(2)} MB
                   {stagedIsVideo && (
@@ -176,14 +232,14 @@ export default function DragDropZone({
             >
               <motion.div
                 animate={{ scale: isDragActive ? 1.1 : 1 }}
-                transition={{ type: 'spring', stiffness: 400 }}
+                transition={{ type: "spring", stiffness: 400 }}
                 className="w-12 h-12 rounded-xl bg-gray-100 flex items-center justify-center"
               >
                 <Upload className="w-6 h-6 text-gray-400" />
               </motion.div>
               <div>
                 <p className="font-semibold text-gray-700 text-[15px]">
-                  {isDragActive ? 'Release to upload' : 'Drop an artifact here'}
+                  {isDragActive ? "Release to upload" : "Drop an artifact here"}
                 </p>
                 <p className="text-[13px] text-gray-400 mt-0.5">
                   or choose a file from your device
@@ -214,9 +270,11 @@ export default function DragDropZone({
           className={`
             flex-1 w-full sm:w-auto flex items-center justify-center gap-2
             h-11 px-6 rounded-xl font-semibold text-[14px] tracking-wide transition-all duration-200
-            ${staged && !isLoading
-              ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-md shadow-blue-200'
-              : 'bg-gray-100 text-gray-300 cursor-not-allowed'}
+            ${
+              staged && !isLoading
+                ? "bg-blue-600 hover:bg-blue-700 text-white shadow-md shadow-blue-200"
+                : "bg-gray-100 text-gray-300 cursor-not-allowed"
+            }
           `}
         >
           {isLoading ? (
@@ -226,7 +284,7 @@ export default function DragDropZone({
           ) : (
             <ChevronRight className="w-4 h-4" />
           )}
-          {stagedIsVideo ? 'VERIFY VIDEO PROVENANCE' : 'VERIFY PROVENANCE'}
+          {stagedIsVideo ? "VERIFY VIDEO PROVENANCE" : "VERIFY PROVENANCE"}
         </motion.button>
 
         <button
@@ -234,7 +292,7 @@ export default function DragDropZone({
           disabled={isLoading}
           className="text-[13px] font-medium text-blue-600 hover:text-blue-700 hover:underline underline-offset-2 transition-all whitespace-nowrap disabled:opacity-40"
         >
-          Try Demo {mockMode === 'video' ? 'Video' : 'Artifact'}
+          Try Demo {mockMode === "video" ? "Video" : "Artifact"}
         </button>
       </div>
 
@@ -260,12 +318,16 @@ export default function DragDropZone({
                 title={opt.desc}
                 className={`
                   flex items-center gap-2 px-3 py-2 rounded-xl text-left border transition-all text-xs font-medium
-                  ${isSelected
-                    ? `border-blue-500/50 bg-blue-50/80 shadow-sm ${opt.color}`
-                    : 'border-gray-200/80 bg-white/50 text-gray-600 hover:bg-white hover:border-gray-300'}
+                  ${
+                    isSelected
+                      ? `border-blue-500/50 bg-blue-50/80 shadow-sm ${opt.color}`
+                      : "border-gray-200/80 bg-white/50 text-gray-600 hover:bg-white hover:border-gray-300"
+                  }
                 `}
               >
-                <Icon className={`w-3.5 h-3.5 flex-shrink-0 ${isSelected ? opt.color : 'text-gray-400'}`} />
+                <Icon
+                  className={`w-3.5 h-3.5 flex-shrink-0 ${isSelected ? opt.color : "text-gray-400"}`}
+                />
                 <span className="truncate">{opt.label}</span>
               </button>
             );

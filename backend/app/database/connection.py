@@ -45,11 +45,13 @@ def get_engine():
                     pool_pre_ping=True
                 )
             _SessionFactory = sessionmaker(autocommit=False, autoflush=False, bind=_engine)
+            Base.metadata.create_all(bind=_engine)
             logger.info("Database engine initialized successfully.")
         except Exception as e:
             logger.warning(f"Could not connect to database at {db_url}: {e}")
             _engine = create_engine("sqlite:///./fallback_provledger.db", connect_args={"check_same_thread": False})
             _SessionFactory = sessionmaker(autocommit=False, autoflush=False, bind=_engine)
+            Base.metadata.create_all(bind=_engine)
 
     return _engine
 

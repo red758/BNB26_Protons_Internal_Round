@@ -14,16 +14,28 @@ class Settings(BaseSettings):
     )
 
     # Database
-    database_url: str = "postgresql://provledger:provledger@localhost:5432/provledger"
+    DATABASE_URL: str = "postgresql://provledger:provledger@localhost:5432/provledger"
 
     # Security
-    secret_key: str = "change-me-in-production"
+    SECRET_KEY: str = "change-me-in-production"
 
     # CORS — stored as comma-separated string in env, parsed as list
-    cors_origins: List[str] = ["http://localhost:3000"]
+    CORS_ORIGINS: List[str] = ["http://localhost:3000"]
 
     # Embedding model backend: "resnet" | "clip" | "hash-only"
-    embedding_model: str = "resnet"
+    EMBEDDING_MODEL: str = "resnet"
+
+    @property
+    def database_url(self) -> str:
+        return self.DATABASE_URL
+
+    @property
+    def secret_key(self) -> str:
+        return self.SECRET_KEY
+
+    @property
+    def cors_origins(self) -> List[str]:
+        return self.CORS_ORIGINS
 
 
 settings = Settings()

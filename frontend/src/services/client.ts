@@ -1,11 +1,11 @@
-﻿/**
+/**
  * ProvLedger API Service Client
  * Outbound client mapping routes to FastAPI backend & local fallback API endpoints.
  * Supports both image and video artifact types.
  * Structured around 7 Key Provenance Features.
  */
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || '';
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE || process.env.NEXT_PUBLIC_API_URL || '';
 
 export type VerificationStatus = 'verified' | 'tampered' | 'unregistered';
 export type TrustLevel = 'HIGH' | 'MEDIUM' | 'LOW' | 'UNTRUSTED' | 'UNREGISTERED';

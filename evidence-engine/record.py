@@ -42,7 +42,7 @@ from pathlib import Path
 from typing import Any
 
 from .ai_signals import AISignalEvidence, AISignalsError, collect_ai_signals
-from .c2pa import (
+from .c2pa_reader import (
     AI_SOURCE_TYPES,
     C2PAError,
     C2PAEvidence,

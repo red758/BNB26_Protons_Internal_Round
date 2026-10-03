@@ -19,7 +19,7 @@ from .ai_signals import (
     collect_ai_signals,
     has_ai_signals,
 )
-from .c2pa import (
+from .c2pa_reader import (
     AI_SOURCE_TYPES,
     C2PAAction,
     C2PACreator,

@@ -1,0 +1,18 @@
+{
+  "provenance": {
+    "model": null,
+    "created_at": null,
+    "signed_by": null,
+    "issued_at": null,
+    "algorithm": null,
+    "certificate_status": null,
+    "software": null
+  },
+  "artifact": {
+    "filename": null,
+    "sha256": null,
+    "mime_type": null,
+    "width": null,
+    "height": null
+  }
+}

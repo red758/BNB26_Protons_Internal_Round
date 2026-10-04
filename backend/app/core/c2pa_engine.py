@@ -24,6 +24,19 @@ def read_c2pa_manifest(image_bytes: bytes, filename: str = "") -> Dict[str, Any]
     return manifest
 
 
+def _detect_mime_from_bytes(raw: bytes) -> str:
+    """Detect MIME type from file magic bytes."""
+    if raw[:3] == b'\xff\xd8\xff':
+        return "image/jpeg"
+    if raw[:8] == b'\x89PNG\r\n\x1a\n':
+        return "image/png"
+    if len(raw) > 12 and raw[:4] == b'RIFF' and raw[8:12] == b'WEBP':
+        return "image/webp"
+    if raw[:6] in (b'GIF87a', b'GIF89a'):
+        return "image/gif"
+    return "image/jpeg"  # safe default for c2pa library
+
+
 def extract_c2pa_manifest(image_bytes: bytes) -> Dict[str, Any]:
     """
     Attempts to read C2PA manifest / provenance metadata from raw image bytes.
@@ -44,7 +57,9 @@ def extract_c2pa_manifest(image_bytes: bytes) -> Dict[str, Any]:
     # Try c2pa library if available
     try:
         import c2pa
-        reader = c2pa.Reader.from_bytes("image/jpeg", image_bytes)
+        # Detect actual mime type from magic bytes instead of hardcoding image/jpeg
+        detected_mime = _detect_mime_from_bytes(image_bytes)
+        reader = c2pa.Reader.from_bytes(detected_mime, image_bytes)
         manifest_json = reader.json()
         if manifest_json:
             parsed = json.loads(manifest_json)

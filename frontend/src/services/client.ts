@@ -601,22 +601,14 @@ export async function verifyArtifact(
   file: File,
   mockMode: MockMode = 'live'
 ): Promise<VerificationResult> {
-  if (!API_BASE) {
-    await new Promise((r) => setTimeout(r, 1800));
-    if (mockMode === 'verified') return injectFileInfo(MOCK_VERIFIED, file);
-    if (mockMode === 'video') return injectFileInfo(MOCK_VIDEO_VERIFIED, file);
-    if (mockMode === 'transformed') return injectFileInfo(MOCK_TRANSFORMED, file);
-    if (mockMode === 'tampered') return injectFileInfo(MOCK_TAMPERED, file);
-    if (mockMode === 'privacy') return injectFileInfo(MOCK_PRIVACY, file);
-    if (mockMode === 'unregistered') return injectFileInfo(MOCK_UNREGISTERED, file);
-    return callInternalVerify(file);
-  }
-
-  const formData = new FormData();
-  formData.append('file', file);
-  const res = await fetch(`${API_BASE}/api/verification`, { method: 'POST', body: formData });
-  if (!res.ok) throw new Error(`Verify failed: ${res.status}`);
-  return res.json();
+  if (mockMode === 'verified') return injectFileInfo(MOCK_VERIFIED, file);
+  if (mockMode === 'video') return injectFileInfo(MOCK_VIDEO_VERIFIED, file);
+  if (mockMode === 'transformed') return injectFileInfo(MOCK_TRANSFORMED, file);
+  if (mockMode === 'tampered') return injectFileInfo(MOCK_TAMPERED, file);
+  if (mockMode === 'privacy') return injectFileInfo(MOCK_PRIVACY, file);
+  if (mockMode === 'unregistered') return injectFileInfo(MOCK_UNREGISTERED, file);
+  
+  return callInternalVerify(file);
 }
 
 export async function registerArtifact(
@@ -642,6 +634,11 @@ async function callInternalVerify(file: File): Promise<VerificationResult> {
   formData.append('file', file);
   const res = await fetch('/api/verify', { method: 'POST', body: formData });
   const data = await res.json();
+  
+  if (data.error) {
+    throw new Error(`Analysis failed: ${data.error}`);
+  }
+
   const hash = await computeFileHash(file);
   const size = await getFileSize(file);
   const kind = getArtifactKind(file.type);
@@ -651,28 +648,59 @@ async function callInternalVerify(file: File): Promise<VerificationResult> {
     video_metadata = await extractVideoMetadata(file);
   }
 
-  if (data.status === 'verified_exact' || data.status === 'verified_transformed') {
-    const isTransformed = data.status === 'verified_transformed';
+  const analysis = data.analysis;
+  if (analysis) {
+    const isAI = analysis.trustFactor === 0;
+    const isAuthentic = analysis.trustFactor === 100;
+    const isUnsure = !isAI && !isAuthentic;
+
+    let status: VerificationStatus = 'unregistered';
+    if (isAuthentic) status = 'verified';
+    else if (isAI) status = 'tampered'; // Shows as failed provenance
+    else status = 'unregistered'; // Shows as unsure/amber
+
+    let trustLevel: TrustLevel = 'UNREGISTERED';
+    if (isAuthentic) trustLevel = 'HIGH';
+    else if (isUnsure) trustLevel = 'MEDIUM';
+    else if (isAI) trustLevel = 'UNTRUSTED';
+
     return {
-      status: 'verified',
+      status: status,
       artifact: { name: file.name, type: file.type, kind, size, hash, ...(video_metadata ? { video_metadata } : {}) },
-      origin: { model: data.record?.model || 'ModelLedger AI', version: '1.0', action: data.record?.action || 'GENERATED', timestamp: data.record?.timestamp || new Date().toISOString() },
-      chain_valid: true,
-      history: [{ action: data.record?.action || 'GENERATED', model: data.record?.model || 'ModelLedger AI', hash, timestamp: data.record?.timestamp || new Date().toISOString() }],
-      blockchain: { block_hash: hash, block_number: 1, timestamp: data.record?.timestamp || new Date().toISOString(), chain_integrity: true },
+      origin: {
+        model: analysis.model,
+        version: 'Analyzed',
+        action: analysis.determination,
+        timestamp: new Date().toISOString()
+      },
+      chain_valid: isAuthentic,
+      history: [{
+        action: 'HEURISTIC ANALYSIS',
+        model: 'Verification Engine',
+        hash,
+        timestamp: new Date().toISOString()
+      }],
+      blockchain: { block_hash: hash, block_number: 1, timestamp: new Date().toISOString(), chain_integrity: isAuthentic },
       trust: {
-        level: isTransformed ? 'MEDIUM' : 'HIGH',
-        label: isTransformed ? 'TRANSFORMED MATCH' : 'VERIFIABLE EVIDENCE',
+        level: trustLevel,
+        label: `TRUST SCORE: ${analysis.trustFactor}`,
         verifiable_evidence: true,
         evidence_metrics: [
-          { name: kind === 'video' ? 'Video Key-Frame Hash Match' : 'Ledger Hash Match', status: 'pass', detail: isTransformed ? 'Visual HNSW match verified' : 'Exact SHA-256 match' },
+          { name: 'Metadata & EXIF Signatures', status: analysis.metrics.metadataFound ? 'fail' : 'pass', detail: analysis.metrics.metadataFound ? 'AI Generator Footprints Found' : 'Clean / No AI metadata' },
+          { name: 'Sensor Noise Variance (Smoothness)', status: analysis.metrics.avgNoise < 12 || analysis.metrics.avgNoise > 45 ? 'warn' : 'pass', detail: `Variance: ${analysis.metrics.avgNoise} (Natural range ~15-35)` },
+          { name: 'Color Space & Saturation Profiling', status: analysis.metrics.avgSaturation > 0.45 ? 'warn' : 'pass', detail: `Saturation Index: ${analysis.metrics.avgSaturation} (High indicates AI tuning)` },
+          { name: 'Calculated AI Probability', status: isAI ? 'fail' : isAuthentic ? 'pass' : 'warn', detail: `Overall Synthetic Likelihood: ${analysis.metrics.aiScore}%` }
         ],
       },
-      transformation: { is_transformed: isTransformed, provenance_preserved: true, similarity_score: isTransformed ? 'Visual Hamming Match' : '100% Exact' },
-      multi_system: { systems_count: 1, pipeline: [{ system_name: data.record?.model || 'ModelLedger AI', role: 'Origin Engine', timestamp: new Date().toISOString() }] },
-      tamper: { has_tampering: false, inconsistencies: [] },
-      privacy: { zero_knowledge_active: true, salted_prompt_hash: '0x' + hash.slice(0, 32), redacted_fields: ['User Prompt String'] },
-      adversarial: { test_category: 'Standard Verification', resilience_result: 'Verified Origin' },
+      transformation: { is_transformed: isAI, provenance_preserved: !isAI, similarity_score: isAI ? 'High Synthetic Traits' : 'Natural Sensor Traits' },
+      multi_system: { systems_count: 1, pipeline: [{ system_name: 'Statistical Verification Engine', role: 'Analyzer', timestamp: new Date().toISOString() }] },
+      tamper: {
+        has_tampering: isAI,
+        tamper_type: isAI ? 'AI Generated Content' : undefined,
+        inconsistencies: isAI ? ['High likelihood of synthetic generation based on statistical analysis and noise patterns.'] : []
+      },
+      privacy: { zero_knowledge_active: false, salted_prompt_hash: '', redacted_fields: [] },
+      adversarial: { test_category: 'AI Synthesis Detection Suite', resilience_result: analysis.determination },
     };
   }
 

@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useCallback, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
@@ -162,7 +162,7 @@ export default function DragDropZone({
                       VIDEO
                     </span>
                   )}
-                  <span className="ml-1">┬╖ Click to replace</span>
+                  <span className="ml-1">· Click to replace</span>
                 </p>
               </div>
             </motion.div>
@@ -191,12 +191,12 @@ export default function DragDropZone({
               </div>
               <div className="flex flex-col items-center gap-1">
                 <p className="text-[11px] text-gray-300 tracking-widest uppercase font-medium">
-                  PNG ┬╖ JPG ┬╖ WEBP ┬╖ GIF
+                  PNG · JPG · WEBP · GIF
                 </p>
                 <div className="flex items-center gap-1.5">
                   <Video className="w-3 h-3 text-blue-400" />
                   <p className="text-[11px] text-blue-400 tracking-widest uppercase font-medium">
-                    MP4 ┬╖ MOV ┬╖ WEBM ┬╖ AVI
+                    MP4 · MOV · WEBM · AVI
                   </p>
                 </div>
               </div>

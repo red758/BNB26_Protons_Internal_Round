@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { motion } from 'framer-motion';
 import {
@@ -157,7 +157,7 @@ export default function VerificationResultCard({ result }: VerificationResultPro
                   : <ShieldX className="w-3.5 h-3.5" />
               }
               label="CHAIN INTEGRITY"
-              value={result.chain_valid ? 'Γ£ô Valid' : 'Γ£ò Invalid'}
+              value={result.chain_valid ? '✔ Valid' : '✘ Invalid'}
               valueClass={result.chain_valid ? 'text-emerald-600' : 'text-red-600'}
             />
 
@@ -199,7 +199,7 @@ export default function VerificationResultCard({ result }: VerificationResultPro
                 <EvidenceCell
                   icon={<XCircle className="w-3.5 h-3.5" />}
                   label="HASH MATCH"
-                  value="Γ£ò MISMATCH"
+                  value="✘ MISMATCH"
                   valueClass="text-red-600"
                 />
                 <EvidenceCell
@@ -268,7 +268,7 @@ export default function VerificationResultCard({ result }: VerificationResultPro
             </p>
             {privacy.redacted_fields.length > 0 && (
               <p className="text-[11px] text-gray-500 mt-1">
-                Protected Fields: {privacy.redacted_fields.join(' ┬╖ ')}
+                Protected Fields: {privacy.redacted_fields.join(' · ')}
               </p>
             )}
           </div>

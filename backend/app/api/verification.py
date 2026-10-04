@@ -20,6 +20,7 @@ from pydantic import BaseModel
 from app.core.inference import compute_embedding
 from app.core.crypto import compute_salted_hash
 from app.core.c2pa_engine import read_c2pa_manifest
+from app.core.ai_predictor import predict_provenance_features
 from app.database.repository import (
     find_by_exact_hash,
     find_by_similarity,
@@ -268,21 +269,87 @@ async def verify_artifact(file: UploadFile = File(...)):
     # ── C2PA manifest (from the uploaded file itself) ─────────────────────────
     c2pa_info = read_c2pa_manifest(raw, file.filename or "")
 
-    # ── 1. Exact SHA-256 lookup ───────────────────────────────────────────────
+    
+    # 1. Exact SHA-256 lookup
     record = await find_by_exact_hash(sha256)
+    result = None
     if record:
-        return _build_verified(artifact, record, sha256,
+        result = _build_verified(artifact, record, sha256,
                                is_transformed=False, similarity_score=None,
                                c2pa_info=c2pa_info)
+    else:
+        # 2. Visual embedding similarity search (HNSW)
+        embedding = compute_embedding(raw, content_type)
+        similar = await find_by_similarity(embedding, threshold=0.85, limit=1)
+        if similar:
+            best_record, score = similar[0]
+            result = _build_verified(artifact, best_record, sha256,
+                                   is_transformed=True, similarity_score=score,
+                                   c2pa_info=c2pa_info)
+        else:
+            # 3. Not found
+            result = _build_unregistered(artifact, sha256)
 
-    # ── 2. Visual embedding similarity search (HNSW) ──────────────────────────
-    embedding = compute_embedding(raw, content_type)
-    similar = await find_by_similarity(embedding, threshold=0.85, limit=1)
-    if similar:
-        best_record, score = similar[0]
-        return _build_verified(artifact, best_record, sha256,
-                               is_transformed=True, similarity_score=score,
-                               c2pa_info=c2pa_info)
+    # --- AI PREDICTION AUGMENTATION ---
+    ai_preds = predict_provenance_features(raw, content_type)
+    if ai_preds:
+        # 1. Provenance Verification
+        if "provenance_verification" in ai_preds and hasattr(result, "status"):
+            pass
+            
+        # 2. Provenance Trust
+        if "provenance_trust" in ai_preds and isinstance(ai_preds["provenance_trust"], dict):
+            trust = ai_preds["provenance_trust"]
+            if "level" in trust:
+                result.trust.level = trust["level"]
+            if "label" in trust:
+                result.trust.label = trust["label"]
+                
+        # 3. Transformation Handling
+        if "transformation_handling" in ai_preds and isinstance(ai_preds["transformation_handling"], dict):
+            trans = ai_preds["transformation_handling"]
+            if "is_transformed" in trans:
+                result.transformation.is_transformed = trans["is_transformed"]
+            if "transformation_type" in trans:
+                result.transformation.transformation_type = trans["transformation_type"]
+                
+        # 4. Multi-System Provenance
+        if "multi_system_provenance" in ai_preds and isinstance(ai_preds["multi_system_provenance"], list):
+            new_pipeline = []
+            for step in ai_preds["multi_system_provenance"]:
+                if isinstance(step, dict) and "system_name" in step:
+                    # using the PipelineStep defined earlier in verification.py
+                    new_pipeline.append(PipelineStep(
+                        system_name=step["system_name"],
+                        role=step.get("role", "Unknown"),
+                        timestamp=_now_iso()
+                    ))
+            if new_pipeline:
+                result.multi_system.pipeline = new_pipeline
+                result.multi_system.systems_count = len(new_pipeline)
+                
+        # 5. Tamper Detection
+        if "tamper_detection" in ai_preds and isinstance(ai_preds["tamper_detection"], dict):
+            tamper = ai_preds["tamper_detection"]
+            if "has_tampering" in tamper:
+                result.tamper.has_tampering = tamper["has_tampering"]
+            if "inconsistencies" in tamper:
+                result.tamper.inconsistencies = tamper["inconsistencies"]
+                
+        # 6. Privacy-Preserving
+        if "privacy_preserving" in ai_preds and isinstance(ai_preds["privacy_preserving"], dict):
+            priv = ai_preds["privacy_preserving"]
+            if "zero_knowledge_active" in priv:
+                result.privacy.zero_knowledge_active = priv["zero_knowledge_active"]
+            if "redacted_fields" in priv:
+                result.privacy.redacted_fields = priv["redacted_fields"]
+                
+        # 7. Adversarial Testing
+        if "adversarial_testing" in ai_preds and isinstance(ai_preds["adversarial_testing"], dict):
+            adv = ai_preds["adversarial_testing"]
+            if "test_category" in adv:
+                result.adversarial.test_category = adv["test_category"]
+            if "resilience_result" in adv:
+                result.adversarial.resilience_result = adv["resilience_result"]
 
-    # ── 3. Not found ──────────────────────────────────────────────────────────
-    return _build_unregistered(artifact, sha256)
+    return result

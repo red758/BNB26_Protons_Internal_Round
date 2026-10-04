@@ -25,6 +25,9 @@ class Settings(BaseSettings):
     # Embedding model backend: "resnet" | "clip" | "hash-only"
     EMBEDDING_MODEL: str = "resnet"
 
+    # Gemini API Key for VLM predictions
+    GEMINI_API_KEY: str = ""
+
     @property
     def database_url(self) -> str:
         return self.DATABASE_URL

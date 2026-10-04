@@ -17,7 +17,7 @@ from app.database.connection import init_db
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Startup / shutdown hook."""
-    await init_db()
+    init_db()
     yield
 
 

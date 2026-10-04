@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useState, useEffect, useRef } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -98,7 +98,7 @@ export default function Home() {
           </h1>
 
           <p className="text-[16px] sm:text-[17px] text-gray-500 leading-relaxed max-w-xl mx-auto mb-10">
-            Trace an artifact from creation through every transformation ΓÇö
+            Trace an artifact from creation through every transformation —
             and verify its provenance with cryptographic evidence.
           </p>
 
@@ -206,7 +206,7 @@ export default function Home() {
             Cryptographic provenance for AI-generated content.
           </p>
           <p className="text-[11px] text-gray-300 tracking-wider uppercase">
-            ΓùÅ SYSTEM ONLINE
+            SYSTEM ONLINE
           </p>
         </div>
       </footer>

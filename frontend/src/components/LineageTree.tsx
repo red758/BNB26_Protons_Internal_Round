@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useState } from 'react';
 import { motion } from 'framer-motion';
@@ -184,8 +184,8 @@ export default function LineageTree({ result, artifactPreviewUrl }: LineageTreeP
                 <ShieldCheck className="w-4 h-4 text-emerald-500 flex-shrink-0" />
                 <span className="text-[12px] font-semibold text-emerald-700 tracking-wide">
                   {isVideo
-                    ? 'Γ£ô VIDEO PROVENANCE CHAIN VERIFIED'
-                    : 'Γ£ô MULTI-SYSTEM CHAIN INTEGRITY VERIFIED'}
+                    ? '✔ VIDEO PROVENANCE CHAIN VERIFIED'
+                    : '✔ MULTI-SYSTEM CHAIN INTEGRITY VERIFIED'}
                 </span>
               </motion.div>
             )}
@@ -291,7 +291,7 @@ function TimelineEvent({
         <div className="flex items-start justify-between gap-2 mb-2">
           <div>
             <span className={`inline-block text-[10px] font-bold tracking-[0.12em] uppercase px-2 py-0.5 rounded-full ${colors.badge}`}>
-              ΓùÅ {event.action}
+              {event.action}
             </span>
             <p className="mt-1 text-[13px] font-semibold text-gray-800">{event.model}</p>
             {event.system_app && (

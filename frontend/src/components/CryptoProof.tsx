@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -115,7 +115,7 @@ export default function CryptoProof({ result }: CryptoProofProps) {
                       )
                     }
                     label="Chain Integrity"
-                    value={chain_valid ? 'Γ£ô VALID' : 'Γ£ò INVALID'}
+                    value={chain_valid ? '✔ VALID' : '✘ INVALID'}
                     valueClass={chain_valid ? 'text-emerald-600' : 'text-red-600'}
                   />
                 </div>

@@ -318,7 +318,7 @@ const MOCK_VIDEO_VERIFIED: VerificationResult = {
     label: 'VERIFIABLE EVIDENCE',
     verifiable_evidence: true,
     evidence_metrics: [
-      { name: 'Video Key-Frame Sampling (1 fps)', status: 'pass', detail: '432 frames sampled ΓÇö all hashes match ledger commitment' },
+      { name: 'Video Key-Frame Sampling (1 fps)', status: 'pass', detail: '432 frames sampled — all hashes match ledger commitment' },
       { name: 'C2PA Video Manifest', status: 'pass', detail: 'Signed by OpenAI Trust Root via Ed25519 Key' },
       { name: 'Temporal Hash Merkle Tree', status: 'pass', detail: 'Video segment tree anchored on Block #007' },
       { name: 'Neural Perceptual Embedding (CLIP)', status: 'pass', detail: 'Cosine Similarity: 0.9982 (After re-encoding)' },
@@ -346,7 +346,7 @@ const MOCK_VIDEO_VERIFIED: VerificationResult = {
   },
   adversarial: {
     test_category: 'Video Provenance Verification (Key-Frame Sampling)',
-    resilience_result: 'All 432 Key-Frames Verified ΓÇö Chain Integrity Confirmed',
+    resilience_result: 'All 432 Key-Frames Verified — Chain Integrity Confirmed',
   },
 };
 
@@ -478,7 +478,7 @@ const MOCK_TAMPERED: VerificationResult = {
     tamper_type: 'Fabricated Provenance & Payload Alteration',
     inconsistencies: [
       'Artifact content hash differs from ledger commitment',
-      'Digital signature broken ΓÇö file modified post-creation',
+      'Digital signature broken — file modified post-creation',
       'Parent hash reference points to mismatched genesis block',
     ],
   },

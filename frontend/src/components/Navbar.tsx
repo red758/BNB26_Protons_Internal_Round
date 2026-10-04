@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import Link from 'next/link';
 
@@ -59,7 +59,7 @@ export default function Navbar() {
             <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
           </span>
           <span className="text-[11px] font-semibold tracking-widest text-emerald-700 uppercase">
-            ΓùÅ SYSTEM ONLINE
+            SYSTEM ONLINE
           </span>
         </div>
       </nav>

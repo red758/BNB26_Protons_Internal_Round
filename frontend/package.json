@@ -19,6 +19,7 @@
     "react-dropzone": "^20.1.2"
   },
   "devDependencies": {
+    "@netlify/plugin-nextjs": "^5.16.1",
     "@tailwindcss/postcss": "^4",
     "@types/crypto-js": "^4.2.2",
     "@types/node": "^20",
